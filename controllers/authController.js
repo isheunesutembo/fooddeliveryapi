@@ -1,6 +1,6 @@
 const User=require('../models/User')
 const CryptoJs=require('crypto-js')
-const jwt=require('jwt')
+const jwt=require('jsonwebtoken')
 const otpGenerator=require('../uitls/otp_generator')
 const sendMail=require('../uitls/smtp_function')
 module.exports={
