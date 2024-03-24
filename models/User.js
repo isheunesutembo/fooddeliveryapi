@@ -11,6 +11,7 @@ const UserSchema=new mongoose.Schema({
     ref:"Address",
     required:false
    },
+   password:{type:String,required:true},
    userType:{type:String,required:true,default:'Client',enum:['Client','Admin','Vendor','Driver']},
    profile:{type:String,default:''},
    

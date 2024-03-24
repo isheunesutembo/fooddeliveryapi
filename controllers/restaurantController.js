@@ -2,7 +2,7 @@ const Restaurant=require('../models/restaurant');
 
 module.exports={
     addRestaurants:async(req,res)=>{
-        const {title,time,imageUrlcode,logoUrl,rating,coords}=req.body;
+        const {title,time,imageUrl,owner,code,logoUrl,rating,coords}=req.body;
 
         if(!title||!time||!imageUrl||!owner||!code||!logoUrl||!coords||!coords.lattitude||!coords.longitude||!coords.address||!coords.title){
             return res.status(400).json({status:false,message:"All fields are required"})
@@ -15,6 +15,15 @@ module.exports={
           res.status(201).json({status:true,message:"Restaurant has been created successfully!"})
         }catch(error){
             res.status(500).json({status:false,message:error.message})
+
+        }
+    },
+    getAllRestaurants:async(req,res)=>{
+        try{
+         const restaurants=await Restaurant.find({title:{$ne:"more"}},{__v:0})
+         res.status(200).json(restaurants);
+        }catch(error){
+            res.status(500).json({status:false,message:error.message});
 
         }
     },
@@ -64,14 +73,14 @@ module.exports={
                    
                     {$project:{__v:0}}
                 ]);
-                if(randomRestaurant.length===0){
-                    randomRestaurant=Restaurant.aggregate([
+                if(allNearByRestaurant.length===0){
+                    allNearByRestaurant=Restaurant.aggregate([
                         {$match:{isAvailable:true}},
                         {$sample:{size:5}},
                         {$project:{__v:0}}
                     ]);
                 }
-                res.status(200).json(randomRestaurant);
+                res.status(200).json(allNearByRestaurant);
 
             }
 

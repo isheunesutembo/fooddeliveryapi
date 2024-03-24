@@ -1,8 +1,8 @@
 const router=require('express').Router()
 const ratingController=require('../controllers/ratingController')
-
-router.post("/",ratingController.addRating)
-router.get("/",ratingController.checkUserRating)
+const {verifyTokenAndAuthorization}=require('../middleware/verifyToken')
+router.post("/",verifyTokenAndAuthorization,ratingController.addRating)
+router.get("/",verifyTokenAndAuthorization,ratingController.checkUserRating)
 
 
 module.exports=router;
