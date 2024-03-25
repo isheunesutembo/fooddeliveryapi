@@ -1,6 +1,7 @@
 const User=require('../models/User')
 const cryptoJs=require('crypto-js')
 const jwt=require('jsonwebtoken')
+const bcrypt=require('bcrypt')
 const generateOtp=require('../uitls/otp_generator')
 const sendMail=require('../uitls/smtp_function')
 module.exports={
@@ -12,27 +13,25 @@ module.exports={
         }
         const minPasswordLength=8;
         if(req.body.password<minPasswordLength){
-            return res.status(400).json({status:false,message:'Password should be at least'+minPasswordLength+'characters long'}) 
+            return res.status(400).json({status:false,message:"Password should be at least"+minPasswordLength+"characters long"})
         }
         try{
-         const emailExist=await User.findOne({email:req.body.email});
-         if(emailExist){
-            return res.status(400).json({status:false,message:'Email already exists'});
-         }
-       
-         const newUser=User({
+        const emailExists=await User.findOne({email:req.body.email})
+        if(emailExists){
+            return res.status(400).json({status:false,message:"Email already exist"})
+        }
+        const salt=await bcrypt.genSalt(10)
+        hashedPassword=await bcrypt.hash(req.body.password,salt)
+        const newUser=new User({
             username:req.body.username,
             email:req.body.email,
             userType:"Client",
-            password:cryptoJs.AES.encrypt(req.body.password,process.env.SECRET_KEY).toString(),
-          
-         })
-         await newUser.save()
-         //sendMail(newUser.email,otpGenerator)
-         res.status(200).json({status:true,message:"New user created successfully"})
+            password:hashedPassword
+        })
+        await newUser.save()
+        res.status(201).json({status:true,message:"User successfully created."})
         }catch(error){
-            res.status(500).json({status:false,message:error.message})
-
+         res.status(500).json({status:false,message:error.message})
         }
     },
     logInUser:async (req,res)=>{
@@ -50,18 +49,24 @@ module.exports={
             if(!user){
                 return res.status(400).json({status:false,message:'User not found'})  
             }
-            const decryptedPassword=cryptoJs.AES.decrypt(user.password,process.env.SECRET_KEY)
-            const dePassword=decryptedPassword.toString(cryptoJs.enc.Utf8)
-            if(dePassword!==req.body.password){
+           // const decryptedPassword =cryptoJs.AES.decrypt(user.password,process.env.SECRET_KEY)
+           // const dePassword = decryptedPassword.toString(cryptoJs.enc.Utf8)
+            bcrypt.compare(req.body.password.toString(),user.password,(err,res)=>{
+                if(err){
+                    return res.status.json({status:false,message:err.message})
+                }
+            })
+           /* if(dePassword !== req.body.password){
                 return res.status(400).json({status:false,message:'Wrong password'}) 
             }
+            */
             const userToken=jwt.sign({
                 id:user._id,
                 userType:user.userType,
                 email:user.email
 
             },process.env.JWT_SECRET,{expiresIn:"30d"})
-            const{password,otp,...others}=user.doc;
+            const{password,otp, ...others}=user._doc;
             res.status(200).json({...others,userToken})
         }catch(error){
             res.status(500).json({status:false,message:error.message})

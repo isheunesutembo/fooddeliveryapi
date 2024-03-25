@@ -2,6 +2,7 @@ const mongoose=require('mongoose')
 const UserSchema=new mongoose.Schema({
    username:{type:String,required:true,unique:true},
    email:{type:String,required:true} ,
+   password:{type:String,required:true},
    otp:{type:String ,required:true,default:'none'},
    verification:{type:Boolean,default:false},
    phone:{type:String,default:"01234"},
@@ -11,7 +12,6 @@ const UserSchema=new mongoose.Schema({
     ref:"Address",
     required:false
    },
-   password:{type:String,required:true},
    userType:{type:String,required:true,default:'Client',enum:['Client','Admin','Vendor','Driver']},
    profile:{type:String,default:''},
    
